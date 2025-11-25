@@ -1,0 +1,14 @@
+class Solution:
+    def removeElement(self, nums: List[int], val: int) -> int:
+        fast = 0 
+        slow = 0
+        len_nums = len(nums)
+
+        while fast < len_nums:
+            if nums[fast] != val:
+                nums[slow] = nums[fast]
+                slow += 1
+            fast += 1
+
+        return len(nums[:slow])
+        
