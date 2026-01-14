@@ -1,1 +1,21 @@
-xxx.py
+class Solution:
+    def __init__(self):
+        self.dp = []
+
+    def fib(self, n: int) -> int:
+        # 确定dp数组含义 dp[i] 第i个斐波那契数值为dp[i]
+        # 递推公式 dp[i] = dp[i-2] + dp[i-1]
+        # 初始化 dp[0] = 1 dp[1] = 1
+        # 遍历顺序 从递推公式看出 从前往后遍历
+        # 打印dp数组
+        self.dp = [0] * (n+1)
+        if n == 0:
+            return 0
+        if n == 1:
+            return 1
+        self.dp[0] = 0
+        self.dp[1] = 1
+        for i in range(2, n + 1):
+            self.dp[i] = self.dp[i-2] + self.dp[i-1]
+        
+        return self.dp[-1]
