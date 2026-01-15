@@ -1,5 +1,28 @@
 class Solution:
-    def minCostClimbingStairs(self, cost: list[int]) -> int:
+    def minCostClimbingStairs(self, cost):
+        # s1. 确定dp数组含义 到达i位置花费为dp[i]    
+        # s2. 递推公式 dp[i] = 
+        # dp[i - 1] + cost[i - 1] 
+        # dp[i - 2] + cost[i - 2]
+        # s3. 初始化 
+        # dp[0] = 0
+        # dp[1] = 1
+        # s4. 遍历顺序 从前往后
+        dp = [0] * (len(cost) + 1)
+        if len(cost) == 0:
+            return 0
+        if len(cost) == 1:
+            return 0
+
+        dp[0] = 0 
+        dp[1] = 0
+        for i in range(2, len(cost) + 1):
+            dp[i] = min((dp[i-1] + cost[i-1]), (dp[i-2] + cost[i-2]))
+
+        return dp[-1]
+
+
+
 
 
 # 示例测试
