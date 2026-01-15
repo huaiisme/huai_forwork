@@ -1,0 +1,10 @@
+class Solution:
+    def minCostClimbingStairs(self, cost: list[int]) -> int:
+
+
+# 示例测试
+if __name__ == "__main__":
+    solution = Solution()
+    # 测试用例
+    print(solution.minCostClimbingStairs([10, 15, 20]))  # 输出: 15
+    print(solution.minCostClimbingStairs([1, 100, 1, 1, 1, 100, 1, 1, 100, 1]))  # 输出: 6
