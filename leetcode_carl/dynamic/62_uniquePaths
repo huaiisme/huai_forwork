@@ -1,7 +1,7 @@
 class Solution:
     def uniquePaths(self, m, n):
         # s1. 确认dp数组含义 dp[i][j]： 到达第i行第j列有多少个路径
-        # s2. 递推公式 dp[i][j] = dp[i-1][j] + 1 + dp[i][j-1] + 1
+        # s2. 递推公式  dp[i-1][j] + dp[i][j-1]
         # s3. 初始化 dp[0][n] 与dp[m][0] 都是1
         # s4. 遍历顺序
         # s5. 打印dp数组
