@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>麻将计分本</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: #f9f1f1;
+  padding: 10px;
+}
+
+/* 人员选择 */
+.person-group {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.person-group input {
+  display: none;
+}
+.person-group label {
+  flex: 1;
+  min-width: 60px;
+  padding: 14px 8px;
+  background: #f0f0f0;
+  border-radius: 12px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+  border: 2px solid transparent;
+}
+.person-group input:checked + label {
+  background: #d92c2c;
+  color: #ffdd66;
+  border-color: #ffaa00;
+}
+
+/* 动作按钮 */
+.action-group {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.action-group button {
+  padding: 20px 8px;
+  background: #d92c2c;
+  color: #ffdd66;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.action-group button:active {
+  background: #b82222;
+}
+
+/* 日志 */
+.log-box {
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px;
+  height: 280px;
+  overflow-y: auto;
+  white-space: pre-line;
+  font-size: 15px;
+  line-height: 1.5;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+/* 功能按钮 */
+.func-group {
+  display: flex;
+  gap: 8px;
+}
+.func-group button {
+  flex: 1;
+  padding: 16px 8px;
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 15px;
+  font-weight: bold;
+}
+.btn-undo { background: #366895; }
+.btn-clear { background: #e67e22; }
+.btn-export { background: #2d882d; }
+.btn-undo:active { background: #2a5277; }
+.btn-clear:active { background: #cc6c1c; }
+.btn-export:active { background: #236b23; }
+
+/* 横屏适配 */
+@media (min-width: 600px) and (orientation: landscape) {
+  .action-group {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  .log-box {
+    height: 220px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="person-group">
+<input type="radio" name="p" id="p1" value="Huai"><label for="p1">Huai</label>
+<input type="radio" name="p" id="p2" value="Su"><label for="p2">Su</label>
+<input type="radio" name="p" id="p3" value="Yan"><label for="p3">Yan</label>
+<input type="radio" name="p" id="p4" value="Wang"><label for="p4">Wang</label>
+<input type="radio" name="p" id="p5" value="PP"><label for="p5">PP</label>
+</div>
+
+<div class="action-group">
+<button onclick="add('放炮')">放炮</button>
+<button onclick="add('三财神&4白板')">三财神</button>
+<button onclick="add('泥鳅')">泥鳅</button>
+<button onclick="add('截胡')">截胡</button>
+<button onclick="add('被截胡')">被截胡</button>
+</div>
+
+<div class="log-box" id="log"></div>
+
+<div class="func-group">
+<button class="btn-undo" onclick="undo()">撤销上一步</button>
+<button class="btn-clear" onclick="clearAll()">清空记录</button>
+<button class="btn-export" onclick="exportCSV()">导出CSV</button>
+</div>
+
+<script>
+const logEl = document.getElementById('log')
+let records = []
+
+// 读取本地保存
+loadFromLocal()
+showLog()
+
+// 时间格式化
+function now() {
+  const d = new Date()
+  const pad = n => n.toString().padStart(2, '0')
+  return `${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+}
+
+// 添加记录
+function add(action) {
+  const p = document.querySelector('input[name="p"]:checked')
+  if (!p) {
+    alert('请先选择人员')
+    return
+  }
+  records.push({
+    name: p.value,
+    action: action,
+    time: now()
+  })
+  saveToLocal()
+  showLog()
+}
+
+// 显示日志
+function showLog() {
+  logEl.innerText = records.map(r => `[${r.time}] ${r.name}｜${r.action}`).join('\n')
+}
+
+// 撤销
+function undo() {
+  if (records.length === 0) {
+    logEl.innerText += '\n暂无记录可撤销'
+    return
+  }
+  records.pop()
+  saveToLocal()
+  showLog()
+}
+
+// 清空
+function clearAll() {
+  if (!confirm('确定要清空所有记录吗？')) return
+  records = []
+  saveToLocal()
+  showLog()
+  logEl.innerText = '已清空所有记录'
+}
+
+// 导出 CSV（带BOM，不乱码）
+function exportCSV() {
+  if (records.length === 0) {
+    alert('暂无记录可导出')
+    return
+  }
+  const header = 'name,action,time'
+  const rows = records.map(r => `${r.name},${r.action},${r.time}`)
+  const csv = [header, ...rows].join('\n')
+  const BOM = new Uint8Array([0xEF, 0xBB, 0xBF])
+  const blob = new Blob([BOM, csv], { type: 'text/csv;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = '麻将记录.csv'
+  a.click()
+}
+
+// 本地保存
+function saveToLocal() {
+  localStorage.setItem('mj_records', JSON.stringify(records))
+}
+
+function loadFromLocal() {
+  try {
+    const data = localStorage.getItem('mj_records')
+    if (data) records = JSON.parse(data)
+  } catch (e) {}
+}
+</script>
+
+</body>
+</html>
