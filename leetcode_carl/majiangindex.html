@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-<title>麻将计分本</title>
+<title>麻将计分本（场地版）</title>
 <style>
 * {
   margin: 0;
@@ -17,7 +17,7 @@ body {
   padding: 10px;
 }
 
-/* 统计面板 */
+/* 通用统计面板样式 */
 .stats-box {
   background: #fff;
   border-radius: 12px;
@@ -47,7 +47,111 @@ body {
 .stats-name { min-width: 50px; font-weight: bold; }
 .stats-item { min-width: 34px; text-align: center; }
 
-/* 人员选择 */
+/* 放炮牌统计面板 */
+.tile-stats-box {
+  background: #fff;
+  border-radius: 12px;
+  padding: 10px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+}
+.tile-stats-title {
+  font-weight: bold;
+  color: #d92c2c;
+  text-align: center;
+  margin-bottom: 8px;
+}
+.tile-stats-subtitle {
+  font-weight: bold;
+  font-size: 14px;
+  color: #666;
+  margin: 10px 0 6px;
+  padding-left: 4px;
+}
+.tile-rank-grid {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.tile-rank-item {
+  padding: 6px 8px;
+  background: #f8f8f8;
+  border-radius: 8px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.tile-rank-char {
+  font-size: 20px;
+}
+.person-tile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+}
+.person-tile-card {
+  background: #f8f8f8;
+  border-radius: 8px;
+  padding: 8px;
+}
+.person-tile-name {
+  font-weight: bold;
+  margin-bottom: 6px;
+  color: #d92c2c;
+}
+.person-tile-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 12px;
+}
+.empty-tip {
+  text-align: center;
+  color: #999;
+  padding: 10px 0;
+  font-size: 14px;
+}
+
+/* ====================== 核心修改：场地选择样式 ====================== */
+.site-group {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.site-group input {
+  display: none;
+}
+.site-group label {
+  flex: 1;
+  min-width: 100px;
+  padding: 16px 8px;
+  background: #f0f0f0;
+  border-radius: 10px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 16px;
+  border: 2px solid #ddd;
+  cursor: pointer;
+}
+/* 水印城：蓝色 */
+.site-group input[value="水印城"]:checked + label {
+  background: #366895;
+  color: #fff;
+  border-color: #2a5277;
+  box-shadow: 0 0 8px rgba(54,104,149,0.4);
+}
+/* 揽云锦绣：绿色 */
+.site-group input[value="揽云锦绣"]:checked + label {
+  background: #2d882d;
+  color: #fff;
+  border-color: #236b23;
+  box-shadow: 0 0 8px rgba(45,136,45,0.4);
+}
+
+/* ====================== 核心修改：人员选择样式（红色，区分场地） ====================== */
 .person-group {
   display: flex;
   gap: 8px;
@@ -76,7 +180,7 @@ body {
   box-shadow: 0 0 8px rgba(217,44,44,0.4);
 }
 
-/* 动作按钮 */
+/* ====================== 核心修改：动作按钮样式（深橙色，区分场地和人员） ====================== */
 .action-group {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -85,15 +189,15 @@ body {
 }
 .action-group button {
   padding: 18px 8px;
-  background: #d92c2c;
-  color: #ffdd66;
+  background: #e67e22;
+  color: #fff;
   border: none;
   border-radius: 10px;
   font-weight: bold;
   font-size: 16px;
 }
 .action-group button:active {
-  background: #b82222;
+  background: #cc6c1c;
 }
 
 /* 日志 */
@@ -101,7 +205,7 @@ body {
   background: #fff;
   border-radius: 12px;
   padding: 10px;
-  height: 260px;
+  height: 220px;
   overflow-y: auto;
   margin-bottom: 12px;
   font-size: 14px;
@@ -125,45 +229,88 @@ body {
 .btn-clear { background: #e67e22; }
 .btn-export { background: #2d882d; }
 
-/* 弹窗 */
-#modal {
+/* 通用弹窗 */
+.modal {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
   background: rgba(0,0,0,0.5);
   display: none;
   justify-content: center;
   align-items: center;
+  padding: 20px;
+  z-index: 999;
 }
-#modal.show { display: flex; }
+.modal.show { display: flex; }
 .modal-box {
   background: #fff;
   border-radius: 12px;
   padding: 20px;
-  width: 90%;
-  max-width: 360px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 .modal-title {
   font-weight: bold;
   text-align: center;
   margin-bottom: 15px;
+  font-size: 18px;
 }
+
+/* 选牌弹窗 */
+.tile-grid {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 8px;
+  margin-bottom: 15px;
+}
+.tile-btn {
+  padding: 8px;
+  font-size: 32px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+}
+.tile-btn:active {
+  background: #f0f0f0;
+  border-color: #d92c2c;
+}
+.tile-type-title {
+  font-weight: bold;
+  margin: 10px 0 5px;
+  color: #666;
+}
+
+/* 选人弹窗 */
 .target-list {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
 .target-list button {
-  padding: 12px;
+  padding: 14px;
   background: #d92c2c;
   color: #ffdd66;
   border: none;
   border-radius: 8px;
   font-weight: bold;
+  font-size: 16px;
 }
 </style>
 </head>
 <body>
 
+<!-- ====================== 核心修改：场地选择（放在最前面） ====================== -->
+<div class="site-group">
+  <input type="radio" name="site" id="s1" value="水印城">
+  <label for="s1">水印城</label>
+
+  <input type="radio" name="site" id="s2" value="揽云锦绣">
+  <label for="s2">揽云锦绣</label>
+</div>
+
+<!-- 基础数据统计面板 -->
 <div class="stats-box">
   <div class="stats-title">实时统计</div>
   <div class="stats-header">
@@ -186,6 +333,18 @@ body {
   <div id="stats"></div>
 </div>
 
+<!-- 放炮牌统计面板 -->
+<div class="tile-stats-box">
+  <div class="tile-stats-title">放炮牌统计</div>
+  
+  <div class="tile-stats-subtitle">全局放炮牌排行（次数从高到低）</div>
+  <div class="tile-rank-grid" id="globalTileRank"></div>
+
+  <div class="tile-stats-subtitle">个人放炮牌明细</div>
+  <div class="person-tile-grid" id="personTileDetail"></div>
+</div>
+
+<!-- 玩家选择 -->
 <div class="person-group">
   <input type="radio" name="user" id="u1" value="Huai">
   <label for="u1">Huai</label>
@@ -203,9 +362,10 @@ body {
   <label for="u5">PP</label>
 </div>
 
+<!-- 动作按钮 -->
 <div class="action-group">
-  <button onclick="actPao()">放炮</button>
-  <button onclick="actJie()">截胡</button>
+  <button onclick="preparePao()">放炮</button>
+  <button onclick="prepareJieHu()">截胡</button>
   <button onclick="actOne('泥鳅')">泥鳅</button>
 
   <button onclick="actOne('庄上500胡')">庄500胡</button>
@@ -221,38 +381,133 @@ body {
   <button onclick="actOne('姥姥')">姥姥</button>
 </div>
 
+<!-- 操作日志 -->
 <div class="log-box" id="log"></div>
 
+<!-- 功能按钮 -->
 <div class="func-group">
   <button class="btn-undo" onclick="undo()">撤销</button>
   <button class="btn-clear" onclick="clearAll()">清空</button>
   <button class="btn-export" onclick="exportExcel()">导出Excel</button>
 </div>
 
-<div id="modal">
+<!-- 选牌弹窗 -->
+<div class="modal" id="tileModal">
   <div class="modal-box">
-    <div class="modal-title" id="mTitle"></div>
-    <div class="target-list" id="mList"></div>
+    <div class="modal-title">请选择放炮的牌</div>
+    
+    <div class="tile-type-title">万子</div>
+    <div class="tile-grid" id="wanGrid"></div>
+
+    <div class="tile-type-title">条子</div>
+    <div class="tile-grid" id="tiaoGrid"></div>
+
+    <div class="tile-type-title">筒子</div>
+    <div class="tile-grid" id="tongGrid"></div>
+
+    <div class="tile-type-title">字牌</div>
+    <div class="tile-grid" id="ziGrid"></div>
+  </div>
+</div>
+
+<!-- 选人弹窗 -->
+<div class="modal" id="personModal">
+  <div class="modal-box">
+    <div class="modal-title" id="personModalTitle">选择目标</div>
+    <div class="target-list" id="personList"></div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
-const users = ["Huai","Su","Yan","Wang","PP"];
+// 全局配置
+const users = ["Huai", "Su", "Yan", "Wang", "PP"];
 let records = [];
-const modal = document.getElementById("modal");
-const mTitle = document.getElementById("mTitle");
-const mList = document.getElementById("mList");
+let currentPaoUser = ""; // 当前放炮的人
+let selectedTile = { char: "", name: "" }; // 当前选中的牌
+
+// 麻将牌Unicode与中文名称映射
+const tileConfig = {
+  wan: [
+    { char: "🀇", name: "一万" }, { char: "🀈", name: "二万" }, { char: "🀉", name: "三万" },
+    { char: "🀊", name: "四万" }, { char: "🀋", name: "五万" }, { char: "🀌", name: "六万" },
+    { char: "🀍", name: "七万" }, { char: "🀎", name: "八万" }, { char: "🀏", name: "九万" }
+  ],
+  tiao: [
+    { char: "🀐", name: "一条" }, { char: "🀑", name: "二条" }, { char: "🀒", name: "三条" },
+    { char: "🀓", name: "四条" }, { char: "🀔", name: "五条" }, { char: "🀕", name: "六条" },
+    { char: "🀖", name: "七条" }, { char: "🀗", name: "八条" }, { char: "🀘", name: "九条" }
+  ],
+  tong: [
+    { char: "🀙", name: "一筒" }, { char: "🀚", name: "二筒" }, { char: "🀛", name: "三筒" },
+    { char: "🀜", name: "四筒" }, { char: "🀝", name: "五筒" }, { char: "🀞", name: "六筒" },
+    { char: "🀟", name: "七筒" }, { char: "🀠", name: "八筒" }, { char: "🀡", name: "九筒" }
+  ],
+  zi: [
+    { char: "🀀", name: "东" }, { char: "🀁", name: "南" }, { char: "🀂", name: "西" },
+    { char: "🀃", name: "北" }, { char: "🀄", name: "中" }, { char: "🀅", name: "发" },
+    { char: "🀆", name: "白" }
+  ]
+};
+
+// DOM元素
+const tileModal = document.getElementById("tileModal");
+const personModal = document.getElementById("personModal");
+const personModalTitle = document.getElementById("personModalTitle");
+const personList = document.getElementById("personList");
 const log = document.getElementById("log");
 const stats = document.getElementById("stats");
+const globalTileRank = document.getElementById("globalTileRank");
+const personTileDetail = document.getElementById("personTileDetail");
 
+// 初始化渲染麻将牌
+function initTiles() {
+  for (let type in tileConfig) {
+    const grid = document.getElementById(`${type}Grid`);
+    tileConfig[type].forEach(tile => {
+      const btn = document.createElement("button");
+      btn.className = "tile-btn";
+      btn.innerText = tile.char;
+      btn.onclick = () => {
+        selectedTile = tile;
+        closeModal(tileModal);
+        openPersonModal(); // 选完牌弹选人
+      };
+      grid.appendChild(btn);
+    });
+  }
+}
+
+// 时间格式化（普通显示）
 function now() {
   const d = new Date();
   const pad = n=>n.toString().padStart(2,"0");
   return `${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-function me() {
+// ====================== 核心修改：日期格式化（260401格式） ======================
+function getDateStr() {
+  const d = new Date();
+  const pad = n=>n.toString().padStart(2,"0");
+  // 2026年→26，4月→04，1日→01 → 260401
+  return `${String(d.getFullYear()).slice(2)}${pad(d.getMonth()+1)}${pad(d.getDate())}`;
+}
+
+// ====================== 核心修改：获取选中的场地 ======================
+function getSelectedSite() {
+  const r = document.querySelector('input[name="site"]:checked');
+  if (!r) {
+    alert("请先选择场地！");
+    return null;
+  }
+  return r.value;
+}
+
+// 获取当前选中的执行人
+function getSelectedUser() {
+  // 先检查场地
+  if (!getSelectedSite()) return null;
+  
   const r = document.querySelector('input[name="user"]:checked');
   if (!r) {
     alert("请先选择动作执行人！");
@@ -261,16 +516,22 @@ function me() {
   return r.value;
 }
 
-// 统计计算（新增3项）
-function calcStats() {
+// 基础数据统计核心
+function calcBaseStats() {
   let st = {};
   users.forEach(u=>st[u]={
     p:0,w:0,j:0,bj:0,n:0,z:0,l:0,a2:0,a6:0,c3:0,b4:0,
-    bg:0,zh:0,ll:0 // 新增：被跟、诈胡、姥姥
+    bg:0,zh:0,ll:0
   });
   records.forEach(r=>{
-    if (r.t === "pao") { st[r.f].p++; st[r.tg].w++; }
-    if (r.t === "jie") { st[r.f].j++; st[r.tg].bj++; }
+    if (r.t === "pao") { 
+      st[r.from].p++; 
+      st[r.to].w++; 
+    }
+    if (r.t === "jie") { 
+      st[r.from].j++; 
+      st[r.to].bj++; 
+    }
     if (r.t === "one") {
       const u = r.f;
       if (r.a==="泥鳅") st[u].n++;
@@ -280,7 +541,6 @@ function calcStats() {
       if (r.a==="60胡以内") st[u].a6++;
       if (r.a==="三财神") st[u].c3++;
       if (r.a==="4白板") st[u].b4++;
-      // 新增3项
       if (r.a==="第一张被跟") st[u].bg++;
       if (r.a==="诈胡") st[u].zh++;
       if (r.a==="姥姥") st[u].ll++;
@@ -289,83 +549,225 @@ function calcStats() {
   return st;
 }
 
-// 刷新界面（新增3列显示）
+// 放炮牌统计核心
+function calcTileStats() {
+  // 全局统计：牌→总次数
+  let globalCount = {};
+  // 个人统计：玩家→牌→次数
+  let personCount = {};
+  users.forEach(u => personCount[u] = {});
+
+  // 遍历所有放炮记录
+  records.filter(r => r.t === "pao").forEach(r => {
+    const tileKey = `${r.tileName}${r.tile}`;
+    const user = r.from;
+
+    // 全局计数
+    globalCount[tileKey] = (globalCount[tileKey] || 0) + 1;
+    // 个人计数
+    personCount[user][tileKey] = (personCount[user][tileKey] || 0) + 1;
+  });
+
+  // 全局排行排序（次数从高到低）
+  const sortedGlobal = Object.entries(globalCount)
+    .sort((a,b) => b[1] - a[1])
+    .map(item => ({ tile: item[0], count: item[1] }));
+
+  return { sortedGlobal, personCount };
+}
+
+// 刷新界面（含牌统计）
 function refresh() {
-  const st = calcStats();
-  let html = "";
+  const baseStats = calcBaseStats();
+  const tileStats = calcTileStats();
+
+  // 刷新基础统计面板
+  let baseHtml = "";
   users.forEach(u=>{
-    html+=`<div class="stats-row">
+    baseHtml+=`<div class="stats-row">
       <div class="stats-name">${u}</div>
-      <div class="stats-item">${st[u].p}</div>
-      <div class="stats-item">${st[u].w}</div>
-      <div class="stats-item">${st[u].j}</div>
-      <div class="stats-item">${st[u].bj}</div>
-      <div class="stats-item">${st[u].n}</div>
-      <div class="stats-item">${st[u].z}</div>
-      <div class="stats-item">${st[u].l}</div>
-      <div class="stats-item">${st[u].a2}</div>
-      <div class="stats-item">${st[u].a6}</div>
-      <div class="stats-item">${st[u].c3}</div>
-      <div class="stats-item">${st[u].b4}</div>
-      <div class="stats-item">${st[u].bg}</div>
-      <div class="stats-item">${st[u].zh}</div>
-      <div class="stats-item">${st[u].ll}</div>
+      <div class="stats-item">${baseStats[u].p}</div>
+      <div class="stats-item">${baseStats[u].w}</div>
+      <div class="stats-item">${baseStats[u].j}</div>
+      <div class="stats-item">${baseStats[u].bj}</div>
+      <div class="stats-item">${baseStats[u].n}</div>
+      <div class="stats-item">${baseStats[u].z}</div>
+      <div class="stats-item">${baseStats[u].l}</div>
+      <div class="stats-item">${baseStats[u].a2}</div>
+      <div class="stats-item">${baseStats[u].a6}</div>
+      <div class="stats-item">${baseStats[u].c3}</div>
+      <div class="stats-item">${baseStats[u].b4}</div>
+      <div class="stats-item">${baseStats[u].bg}</div>
+      <div class="stats-item">${baseStats[u].zh}</div>
+      <div class="stats-item">${baseStats[u].ll}</div>
     </div>`;
   });
-  stats.innerHTML = html;
+  stats.innerHTML = baseHtml;
+
+  // 刷新全局放炮牌排行
+  if (tileStats.sortedGlobal.length === 0) {
+    globalTileRank.innerHTML = `<div class="empty-tip">暂无放炮记录</div>`;
+  } else {
+    let rankHtml = "";
+    tileStats.sortedGlobal.forEach(item => {
+      rankHtml += `<div class="tile-rank-item">
+        <span class="tile-rank-char">${item.tile.slice(-2)}</span>
+        <span>${item.tile.slice(0,-2)} ×${item.count}</span>
+      </div>`;
+    });
+    globalTileRank.innerHTML = rankHtml;
+  }
+
+  // 刷新个人放炮牌明细
+  let personHtml = "";
+  users.forEach(user => {
+    const userTiles = Object.entries(tileStats.personCount[user])
+      .sort((a,b) => b[1] - a[1]);
+    
+    let tileListHtml = "";
+    if (userTiles.length === 0) {
+      tileListHtml = `<span style="color:#999">暂无放炮记录</span>`;
+    } else {
+      userTiles.forEach(item => {
+        tileListHtml += `<span>${item[0].slice(-2)}×${item[1]}</span>`;
+      });
+    }
+
+    personHtml += `<div class="person-tile-card">
+      <div class="person-tile-name">${user}</div>
+      <div class="person-tile-list">${tileListHtml}</div>
+    </div>`;
+  });
+  personTileDetail.innerHTML = personHtml;
+
+  // 刷新操作日志
   log.innerText = records.map(r=>`[${r.time}] ${r.desc}`).join("\n");
 }
 
-function pop(title, cb) {
-  mTitle.innerText = title;
-  mList.innerHTML = "";
-  const cur = me();
-  users.filter(u=>u!==cur).forEach(tg=>{
+// 弹窗控制
+function openModal(modal) { modal.classList.add("show"); }
+function closeModal(modal) { modal.classList.remove("show"); }
+
+// ========== 放炮流程：选牌→选人 ==========
+function preparePao() {
+  const user = getSelectedUser();
+  if (!user) return;
+  currentPaoUser = user;
+  selectedTile = { char: "", name: "" };
+  openModal(tileModal);
+}
+
+// 选人弹窗
+function openPersonModal() {
+  personModalTitle.innerText = `已选牌：${selectedTile.name}${selectedTile.char}，请选择放炮给谁？`;
+  personList.innerHTML = "";
+  // 排除自己
+  users.filter(u=>u!==currentPaoUser).forEach(tg=>{
     const btn = document.createElement("button");
     btn.innerText = tg;
-    btn.onclick = ()=>{ modal.classList.remove("show"); cb(tg); };
-    mList.appendChild(btn);
+    btn.onclick = () => {
+      finishPao(tg);
+    };
+    personList.appendChild(btn);
   });
-  modal.classList.add("show");
+  openModal(personModal);
 }
 
-function actPao() {
-  const cur = me(); if (!cur) return;
-  pop("放炮给谁？", tg=>{
-    records.push({t:"pao",f:cur,tg:tg,desc:`${cur}→放炮给→${tg}`,time:now()});
-    refresh();
+// 完成放炮记录
+function finishPao(targetUser) {
+  closeModal(personModal);
+  records.push({
+    t: "pao",
+    from: currentPaoUser,
+    to: targetUser,
+    tile: selectedTile.char,
+    tileName: selectedTile.name,
+    desc: `${currentPaoUser}→放炮给→${targetUser}【${selectedTile.name}${selectedTile.char}】`,
+    time: now()
   });
-}
-
-function actJie() {
-  const cur = me(); if (!cur) return;
-  pop("截胡谁？", tg=>{
-    records.push({t:"jie",f:cur,tg:tg,desc:`${cur}→截胡→${tg}`,time:now()});
-    refresh();
-  });
-}
-
-function actOne(a) {
-  const cur = me(); if (!cur) return;
-  records.push({t:"one",f:cur,a:a,desc:`${cur}｜${a}`,time:now()});
   refresh();
 }
 
-function undo() { records.pop(); refresh(); }
-function clearAll() { if(confirm("确定清空所有记录？")){ records=[]; refresh(); } }
+// ========== 截胡流程 ==========
+function prepareJieHu() {
+  const user = getSelectedUser();
+  if (!user) return;
+  personModalTitle.innerText = "截胡谁？";
+  personList.innerHTML = "";
+  users.filter(u=>u!==user).forEach(tg=>{
+    const btn = document.createElement("button");
+    btn.innerText = tg;
+    btn.onclick = () => {
+      closeModal(personModal);
+      records.push({
+        t: "jie",
+        from: user,
+        to: tg,
+        desc: `${user}→截胡→${tg}`,
+        time: now()
+      });
+      refresh();
+    };
+    personList.appendChild(btn);
+  });
+  openModal(personModal);
+}
 
-// 导出双Sheet Excel（新增3列）
+// ========== 普通动作 ==========
+function actOne(action) {
+  const user = getSelectedUser();
+  if (!user) return;
+  records.push({
+    t: "one",
+    f: user,
+    a: action,
+    desc: `${user}｜${action}`,
+    time: now()
+  });
+  refresh();
+}
+
+// ========== 撤销/清空 ==========
+function undo() { 
+  // 先检查场地
+  if (!getSelectedSite()) return;
+  
+  if (records.length === 0) {
+    alert("暂无记录可撤销");
+    return;
+  }
+  records.pop(); 
+  refresh(); 
+}
+function clearAll() { 
+  // 先检查场地
+  if (!getSelectedSite()) return;
+  
+  if(confirm("确定清空所有记录？")){ 
+    records=[]; 
+    refresh(); 
+  } 
+}
+
+// ====================== 核心修改：导出Excel（新文件名格式） ======================
 function exportExcel() {
+  const site = getSelectedSite();
+  if (!site) return;
+  
   if (records.length===0) { alert("暂无记录可导出"); return; }
 
   // Sheet1 实时战报
-  const sheet1 = [["时间","描述","放炮","获胜","截胡","被截","泥鳅","庄500","辣子","200+","60内","三财神","4白板","被跟","诈胡","姥姥"]];
+  const sheet1 = [["时间","描述","放炮","获胜","截胡","被截","泥鳅","庄500","辣子","200+","60内","三财神","4白板","被跟","诈胡","姥姥","放炮牌"]];
   records.forEach(r=>{
-    let row = ["","","","","","","","","","","","","","","",""];
+    let row = ["","","","","","","","","","","","","","","","",""];
     row[0] = r.time;
     row[1] = r.desc;
-    if (r.t==="pao") { row[2]=r.f; row[3]=r.tg; }
-    if (r.t==="jie") { row[4]=r.f; row[5]=r.tg; }
+    if (r.t==="pao") { 
+      row[2]=r.from; 
+      row[3]=r.to; 
+      row[16] = `${r.tileName}${r.tile}`;
+    }
+    if (r.t==="jie") { row[4]=r.from; row[5]=r.to; }
     if (r.t==="one") {
       const idx = {
         "泥鳅":6,"庄上500胡":7,"辣子":8,"200胡以上":9,"60胡以内":10,"三财神":11,"4白板":12,
@@ -376,23 +778,64 @@ function exportExcel() {
     sheet1.push(row);
   });
 
-  // Sheet2 计数统计
-  const st = calcStats();
+  // Sheet2 基础计数统计
+  const baseStats = calcBaseStats();
   const sheet2 = [["玩家","放炮","获胜","截胡","被截","泥鳅","庄500","辣子","200+","60内","三财神","4白板","被跟","诈胡","姥姥"]];
   users.forEach(u=>{
-    sheet2.push([u, st[u].p, st[u].w, st[u].j, st[u].bj,
-      st[u].n, st[u].z, st[u].l, st[u].a2, st[u].a6, st[u].c3, st[u].b4,
-      st[u].bg, st[u].zh, st[u].ll]);
+    sheet2.push([u, baseStats[u].p, baseStats[u].w, baseStats[u].j, baseStats[u].bj,
+      baseStats[u].n, baseStats[u].z, baseStats[u].l, baseStats[u].a2, baseStats[u].a6, baseStats[u].c3, baseStats[u].b4,
+      baseStats[u].bg, baseStats[u].zh, baseStats[u].ll]);
   });
 
-  // 生成文件
+  // Sheet3 放炮牌统计
+  const tileStats = calcTileStats();
+  const sheet3 = [["全局放炮牌排行","",""], ["牌名","字符","放炮次数"]];
+  tileStats.sortedGlobal.forEach(item => {
+    sheet3.push([item.tile.slice(0,-2), item.tile.slice(-2), item.count]);
+  });
+  sheet3.push([]);
+  sheet3.push(["个人放炮牌明细","",""]);
+  sheet3.push(["玩家","牌名","放炮次数"]);
+  users.forEach(user => {
+    const userTiles = Object.entries(tileStats.personCount[user])
+      .sort((a,b) => b[1] - a[1]);
+    userTiles.forEach(item => {
+      sheet3.push([user, item[0], item[1]]);
+    });
+  });
+
+  // 生成Excel文件（新文件名格式：site_260401_战报记录.xlsx）
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sheet1), "实时战报");
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sheet2), "计数统计");
-  XLSX.writeFile(wb, "麻将记录.xlsx");
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sheet3), "放炮牌统计");
+  
+  const fileName = `${site}_${getDateStr()}_战报记录.xlsx`;
+  XLSX.writeFile(wb, fileName);
 }
 
+// ========== 本地存储 ==========
+function saveToLocal() {
+  localStorage.setItem('mj_final_site_version', JSON.stringify(records));
+}
+function loadFromLocal() {
+  try {
+    const data = localStorage.getItem('mj_final_site_version');
+    if (data) records = JSON.parse(data);
+  } catch (e) {}
+}
+
+// 初始化
+initTiles();
+loadFromLocal();
 refresh();
+
+// 监听记录变化自动保存
+const originalRefresh = refresh;
+refresh = function() {
+  originalRefresh();
+  saveToLocal();
+};
 </script>
 </body>
 </html>
