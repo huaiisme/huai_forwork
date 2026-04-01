@@ -47,18 +47,16 @@ body {
 .stats-name { min-width: 50px; font-weight: bold; }
 .stats-item { min-width: 34px; text-align: center; }
 
-/* ====================== 核心修复：人员选择选中高亮 ====================== */
+/* 人员选择 */
 .person-group {
   display: flex;
   gap: 8px;
   margin-bottom: 12px;
   flex-wrap: wrap;
 }
-/* 隐藏radio本体 */
 .person-group input {
   display: none;
 }
-/* 玩家按钮样式 */
 .person-group label {
   flex: 1;
   min-width: 60px;
@@ -71,7 +69,6 @@ body {
   border: 2px solid #ddd;
   cursor: pointer;
 }
-/* 选中后高亮！！！ */
 .person-group input:checked + label {
   background: #d92c2c;
   color: #ffdd66;
@@ -182,11 +179,13 @@ body {
     <div class="stats-item">60内</div>
     <div class="stats-item">三财神</div>
     <div class="stats-item">4白板</div>
+    <div class="stats-item">被跟</div>
+    <div class="stats-item">诈胡</div>
+    <div class="stats-item">姥姥</div>
   </div>
   <div id="stats"></div>
 </div>
 
-<!-- ====================== 核心修复：玩家选择结构 ====================== -->
 <div class="person-group">
   <input type="radio" name="user" id="u1" value="Huai">
   <label for="u1">Huai</label>
@@ -216,6 +215,10 @@ body {
   <button onclick="actOne('60胡以内')">60内</button>
   <button onclick="actOne('三财神')">三财神</button>
   <button onclick="actOne('4白板')">4白板</button>
+
+  <button onclick="actOne('第一张被跟')">被跟</button>
+  <button onclick="actOne('诈胡')">诈胡</button>
+  <button onclick="actOne('姥姥')">姥姥</button>
 </div>
 
 <div class="log-box" id="log"></div>
@@ -249,7 +252,6 @@ function now() {
   return `${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-// 获取当前选中玩家，无则提示
 function me() {
   const r = document.querySelector('input[name="user"]:checked');
   if (!r) {
@@ -259,10 +261,13 @@ function me() {
   return r.value;
 }
 
-// 统计计算
+// 统计计算（新增3项）
 function calcStats() {
   let st = {};
-  users.forEach(u=>st[u]={p:0,w:0,j:0,bj:0,n:0,z:0,l:0,a2:0,a6:0,c3:0,b4:0});
+  users.forEach(u=>st[u]={
+    p:0,w:0,j:0,bj:0,n:0,z:0,l:0,a2:0,a6:0,c3:0,b4:0,
+    bg:0,zh:0,ll:0 // 新增：被跟、诈胡、姥姥
+  });
   records.forEach(r=>{
     if (r.t === "pao") { st[r.f].p++; st[r.tg].w++; }
     if (r.t === "jie") { st[r.f].j++; st[r.tg].bj++; }
@@ -275,12 +280,16 @@ function calcStats() {
       if (r.a==="60胡以内") st[u].a6++;
       if (r.a==="三财神") st[u].c3++;
       if (r.a==="4白板") st[u].b4++;
+      // 新增3项
+      if (r.a==="第一张被跟") st[u].bg++;
+      if (r.a==="诈胡") st[u].zh++;
+      if (r.a==="姥姥") st[u].ll++;
     }
   });
   return st;
 }
 
-// 刷新界面
+// 刷新界面（新增3列显示）
 function refresh() {
   const st = calcStats();
   let html = "";
@@ -298,13 +307,15 @@ function refresh() {
       <div class="stats-item">${st[u].a6}</div>
       <div class="stats-item">${st[u].c3}</div>
       <div class="stats-item">${st[u].b4}</div>
+      <div class="stats-item">${st[u].bg}</div>
+      <div class="stats-item">${st[u].zh}</div>
+      <div class="stats-item">${st[u].ll}</div>
     </div>`;
   });
   stats.innerHTML = html;
   log.innerText = records.map(r=>`[${r.time}] ${r.desc}`).join("\n");
 }
 
-// 弹窗选择目标
 function pop(title, cb) {
   mTitle.innerText = title;
   mList.innerHTML = "";
@@ -318,7 +329,6 @@ function pop(title, cb) {
   modal.classList.add("show");
 }
 
-// 动作函数
 function actPao() {
   const cur = me(); if (!cur) return;
   pop("放炮给谁？", tg=>{
@@ -341,24 +351,26 @@ function actOne(a) {
   refresh();
 }
 
-// 撤销/清空
 function undo() { records.pop(); refresh(); }
 function clearAll() { if(confirm("确定清空所有记录？")){ records=[]; refresh(); } }
 
-// 导出双Sheet Excel
+// 导出双Sheet Excel（新增3列）
 function exportExcel() {
   if (records.length===0) { alert("暂无记录可导出"); return; }
 
   // Sheet1 实时战报
-  const sheet1 = [["时间","描述","放炮","获胜","截胡","被截","泥鳅","庄500","辣子","200+","60内","三财神","4白板"]];
+  const sheet1 = [["时间","描述","放炮","获胜","截胡","被截","泥鳅","庄500","辣子","200+","60内","三财神","4白板","被跟","诈胡","姥姥"]];
   records.forEach(r=>{
-    let row = ["","","","","","","","","","","","",""];
+    let row = ["","","","","","","","","","","","","","","",""];
     row[0] = r.time;
     row[1] = r.desc;
     if (r.t==="pao") { row[2]=r.f; row[3]=r.tg; }
     if (r.t==="jie") { row[4]=r.f; row[5]=r.tg; }
     if (r.t==="one") {
-      const idx = {"泥鳅":6,"庄上500胡":7,"辣子":8,"200胡以上":9,"60胡以内":10,"三财神":11,"4白板":12}[r.a];
+      const idx = {
+        "泥鳅":6,"庄上500胡":7,"辣子":8,"200胡以上":9,"60胡以内":10,"三财神":11,"4白板":12,
+        "第一张被跟":13,"诈胡":14,"姥姥":15
+      }[r.a];
       if (idx) row[idx] = r.f;
     }
     sheet1.push(row);
@@ -366,10 +378,11 @@ function exportExcel() {
 
   // Sheet2 计数统计
   const st = calcStats();
-  const sheet2 = [["玩家","放炮","获胜","截胡","被截","泥鳅","庄500","辣子","200+","60内","三财神","4白板"]];
+  const sheet2 = [["玩家","放炮","获胜","截胡","被截","泥鳅","庄500","辣子","200+","60内","三财神","4白板","被跟","诈胡","姥姥"]];
   users.forEach(u=>{
     sheet2.push([u, st[u].p, st[u].w, st[u].j, st[u].bj,
-      st[u].n, st[u].z, st[u].l, st[u].a2, st[u].a6, st[u].c3, st[u].b4]);
+      st[u].n, st[u].z, st[u].l, st[u].a2, st[u].a6, st[u].c3, st[u].b4,
+      st[u].bg, st[u].zh, st[u].ll]);
   });
 
   // 生成文件
