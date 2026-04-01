@@ -11,56 +11,89 @@
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
 }
-
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family: "Microsoft YaHei", sans-serif;
   background: #f9f1f1;
   padding: 10px;
 }
 
-/* 人员选择 */
+/* 统计面板 */
+.stats-box {
+  background: #fff;
+  border-radius: 12px;
+  padding: 10px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+}
+.stats-title {
+  font-weight: bold;
+  color: #d92c2c;
+  text-align: center;
+  margin-bottom: 6px;
+}
+.stats-header {
+  display: flex;
+  font-weight: bold;
+  font-size: 12px;
+  color: #666;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 4px;
+}
+.stats-row {
+  display: flex;
+  font-size: 13px;
+  padding: 3px 0;
+}
+.stats-name { min-width: 50px; font-weight: bold; }
+.stats-item { min-width: 34px; text-align: center; }
+
+/* ====================== 核心修复：人员选择选中高亮 ====================== */
 .person-group {
   display: flex;
   gap: 8px;
   margin-bottom: 12px;
   flex-wrap: wrap;
 }
+/* 隐藏radio本体 */
 .person-group input {
   display: none;
 }
+/* 玩家按钮样式 */
 .person-group label {
   flex: 1;
   min-width: 60px;
   padding: 14px 8px;
   background: #f0f0f0;
-  border-radius: 12px;
+  border-radius: 10px;
   text-align: center;
-  font-size: 16px;
   font-weight: bold;
-  border: 2px solid transparent;
+  font-size: 16px;
+  border: 2px solid #ddd;
+  cursor: pointer;
 }
+/* 选中后高亮！！！ */
 .person-group input:checked + label {
   background: #d92c2c;
   color: #ffdd66;
   border-color: #ffaa00;
+  box-shadow: 0 0 8px rgba(217,44,44,0.4);
 }
 
 /* 动作按钮 */
 .action-group {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 8px;
   margin-bottom: 12px;
 }
 .action-group button {
-  padding: 20px 8px;
+  padding: 18px 8px;
   background: #d92c2c;
   color: #ffdd66;
   border: none;
-  border-radius: 12px;
-  font-size: 16px;
+  border-radius: 10px;
   font-weight: bold;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  font-size: 16px;
 }
 .action-group button:active {
   background: #b82222;
@@ -70,14 +103,12 @@ body {
 .log-box {
   background: #fff;
   border-radius: 12px;
-  padding: 14px;
-  height: 280px;
+  padding: 10px;
+  height: 260px;
   overflow-y: auto;
-  white-space: pre-line;
-  font-size: 15px;
-  line-height: 1.5;
   margin-bottom: 12px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 /* 功能按钮 */
@@ -87,144 +118,268 @@ body {
 }
 .func-group button {
   flex: 1;
-  padding: 16px 8px;
+  padding: 14px;
   border: none;
-  border-radius: 12px;
-  color: white;
-  font-size: 15px;
+  border-radius: 10px;
+  color: #fff;
   font-weight: bold;
 }
 .btn-undo { background: #366895; }
 .btn-clear { background: #e67e22; }
 .btn-export { background: #2d882d; }
-.btn-undo:active { background: #2a5277; }
-.btn-clear:active { background: #cc6c1c; }
-.btn-export:active { background: #236b23; }
 
-/* 横屏适配 */
-@media (min-width: 600px) and (orientation: landscape) {
-  .action-group {
-    grid-template-columns: repeat(5, 1fr);
-  }
-  .log-box {
-    height: 220px;
-  }
+/* 弹窗 */
+#modal {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+#modal.show { display: flex; }
+.modal-box {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  width: 90%;
+  max-width: 360px;
+}
+.modal-title {
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 15px;
+}
+.target-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.target-list button {
+  padding: 12px;
+  background: #d92c2c;
+  color: #ffdd66;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
 }
 </style>
 </head>
-
 <body>
 
+<div class="stats-box">
+  <div class="stats-title">实时统计</div>
+  <div class="stats-header">
+    <div class="stats-name">玩家</div>
+    <div class="stats-item">放炮</div>
+    <div class="stats-item">获胜</div>
+    <div class="stats-item">截胡</div>
+    <div class="stats-item">被截</div>
+    <div class="stats-item">泥鳅</div>
+    <div class="stats-item">庄500</div>
+    <div class="stats-item">辣子</div>
+    <div class="stats-item">200+</div>
+    <div class="stats-item">60内</div>
+    <div class="stats-item">三财神</div>
+    <div class="stats-item">4白板</div>
+  </div>
+  <div id="stats"></div>
+</div>
+
+<!-- ====================== 核心修复：玩家选择结构 ====================== -->
 <div class="person-group">
-<input type="radio" name="p" id="p1" value="Huai"><label for="p1">Huai</label>
-<input type="radio" name="p" id="p2" value="Su"><label for="p2">Su</label>
-<input type="radio" name="p" id="p3" value="Yan"><label for="p3">Yan</label>
-<input type="radio" name="p" id="p4" value="Wang"><label for="p4">Wang</label>
-<input type="radio" name="p" id="p5" value="PP"><label for="p5">PP</label>
+  <input type="radio" name="user" id="u1" value="Huai">
+  <label for="u1">Huai</label>
+
+  <input type="radio" name="user" id="u2" value="Su">
+  <label for="u2">Su</label>
+
+  <input type="radio" name="user" id="u3" value="Yan">
+  <label for="u3">Yan</label>
+
+  <input type="radio" name="user" id="u4" value="Wang">
+  <label for="u4">Wang</label>
+
+  <input type="radio" name="user" id="u5" value="PP">
+  <label for="u5">PP</label>
 </div>
 
 <div class="action-group">
-<button onclick="add('放炮')">放炮</button>
-<button onclick="add('三财神&4白板')">三财神</button>
-<button onclick="add('泥鳅')">泥鳅</button>
-<button onclick="add('截胡')">截胡</button>
-<button onclick="add('被截胡')">被截胡</button>
+  <button onclick="actPao()">放炮</button>
+  <button onclick="actJie()">截胡</button>
+  <button onclick="actOne('泥鳅')">泥鳅</button>
+
+  <button onclick="actOne('庄上500胡')">庄500胡</button>
+  <button onclick="actOne('辣子')">辣子</button>
+  <button onclick="actOne('200胡以上')">200+</button>
+
+  <button onclick="actOne('60胡以内')">60内</button>
+  <button onclick="actOne('三财神')">三财神</button>
+  <button onclick="actOne('4白板')">4白板</button>
 </div>
 
 <div class="log-box" id="log"></div>
 
 <div class="func-group">
-<button class="btn-undo" onclick="undo()">撤销上一步</button>
-<button class="btn-clear" onclick="clearAll()">清空记录</button>
-<button class="btn-export" onclick="exportCSV()">导出CSV</button>
+  <button class="btn-undo" onclick="undo()">撤销</button>
+  <button class="btn-clear" onclick="clearAll()">清空</button>
+  <button class="btn-export" onclick="exportExcel()">导出Excel</button>
 </div>
 
+<div id="modal">
+  <div class="modal-box">
+    <div class="modal-title" id="mTitle"></div>
+    <div class="target-list" id="mList"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
-const logEl = document.getElementById('log')
-let records = []
+const users = ["Huai","Su","Yan","Wang","PP"];
+let records = [];
+const modal = document.getElementById("modal");
+const mTitle = document.getElementById("mTitle");
+const mList = document.getElementById("mList");
+const log = document.getElementById("log");
+const stats = document.getElementById("stats");
 
-// 读取本地保存
-loadFromLocal()
-showLog()
-
-// 时间格式化
 function now() {
-  const d = new Date()
-  const pad = n => n.toString().padStart(2, '0')
-  return `${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+  const d = new Date();
+  const pad = n=>n.toString().padStart(2,"0");
+  return `${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-// 添加记录
-function add(action) {
-  const p = document.querySelector('input[name="p"]:checked')
-  if (!p) {
-    alert('请先选择人员')
-    return
+// 获取当前选中玩家，无则提示
+function me() {
+  const r = document.querySelector('input[name="user"]:checked');
+  if (!r) {
+    alert("请先选择动作执行人！");
+    return null;
   }
-  records.push({
-    name: p.value,
-    action: action,
-    time: now()
-  })
-  saveToLocal()
-  showLog()
+  return r.value;
 }
 
-// 显示日志
-function showLog() {
-  logEl.innerText = records.map(r => `[${r.time}] ${r.name}｜${r.action}`).join('\n')
+// 统计计算
+function calcStats() {
+  let st = {};
+  users.forEach(u=>st[u]={p:0,w:0,j:0,bj:0,n:0,z:0,l:0,a2:0,a6:0,c3:0,b4:0});
+  records.forEach(r=>{
+    if (r.t === "pao") { st[r.f].p++; st[r.tg].w++; }
+    if (r.t === "jie") { st[r.f].j++; st[r.tg].bj++; }
+    if (r.t === "one") {
+      const u = r.f;
+      if (r.a==="泥鳅") st[u].n++;
+      if (r.a==="庄上500胡") st[u].z++;
+      if (r.a==="辣子") st[u].l++;
+      if (r.a==="200胡以上") st[u].a2++;
+      if (r.a==="60胡以内") st[u].a6++;
+      if (r.a==="三财神") st[u].c3++;
+      if (r.a==="4白板") st[u].b4++;
+    }
+  });
+  return st;
 }
 
-// 撤销
-function undo() {
-  if (records.length === 0) {
-    logEl.innerText += '\n暂无记录可撤销'
-    return
-  }
-  records.pop()
-  saveToLocal()
-  showLog()
+// 刷新界面
+function refresh() {
+  const st = calcStats();
+  let html = "";
+  users.forEach(u=>{
+    html+=`<div class="stats-row">
+      <div class="stats-name">${u}</div>
+      <div class="stats-item">${st[u].p}</div>
+      <div class="stats-item">${st[u].w}</div>
+      <div class="stats-item">${st[u].j}</div>
+      <div class="stats-item">${st[u].bj}</div>
+      <div class="stats-item">${st[u].n}</div>
+      <div class="stats-item">${st[u].z}</div>
+      <div class="stats-item">${st[u].l}</div>
+      <div class="stats-item">${st[u].a2}</div>
+      <div class="stats-item">${st[u].a6}</div>
+      <div class="stats-item">${st[u].c3}</div>
+      <div class="stats-item">${st[u].b4}</div>
+    </div>`;
+  });
+  stats.innerHTML = html;
+  log.innerText = records.map(r=>`[${r.time}] ${r.desc}`).join("\n");
 }
 
-// 清空
-function clearAll() {
-  if (!confirm('确定要清空所有记录吗？')) return
-  records = []
-  saveToLocal()
-  showLog()
-  logEl.innerText = '已清空所有记录'
+// 弹窗选择目标
+function pop(title, cb) {
+  mTitle.innerText = title;
+  mList.innerHTML = "";
+  const cur = me();
+  users.filter(u=>u!==cur).forEach(tg=>{
+    const btn = document.createElement("button");
+    btn.innerText = tg;
+    btn.onclick = ()=>{ modal.classList.remove("show"); cb(tg); };
+    mList.appendChild(btn);
+  });
+  modal.classList.add("show");
 }
 
-// 导出 CSV（带BOM，不乱码）
-function exportCSV() {
-  if (records.length === 0) {
-    alert('暂无记录可导出')
-    return
-  }
-  const header = 'name,action,time'
-  const rows = records.map(r => `${r.name},${r.action},${r.time}`)
-  const csv = [header, ...rows].join('\n')
-  const BOM = new Uint8Array([0xEF, 0xBB, 0xBF])
-  const blob = new Blob([BOM, csv], { type: 'text/csv;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = '麻将记录.csv'
-  a.click()
+// 动作函数
+function actPao() {
+  const cur = me(); if (!cur) return;
+  pop("放炮给谁？", tg=>{
+    records.push({t:"pao",f:cur,tg:tg,desc:`${cur}→放炮给→${tg}`,time:now()});
+    refresh();
+  });
 }
 
-// 本地保存
-function saveToLocal() {
-  localStorage.setItem('mj_records', JSON.stringify(records))
+function actJie() {
+  const cur = me(); if (!cur) return;
+  pop("截胡谁？", tg=>{
+    records.push({t:"jie",f:cur,tg:tg,desc:`${cur}→截胡→${tg}`,time:now()});
+    refresh();
+  });
 }
 
-function loadFromLocal() {
-  try {
-    const data = localStorage.getItem('mj_records')
-    if (data) records = JSON.parse(data)
-  } catch (e) {}
+function actOne(a) {
+  const cur = me(); if (!cur) return;
+  records.push({t:"one",f:cur,a:a,desc:`${cur}｜${a}`,time:now()});
+  refresh();
 }
+
+// 撤销/清空
+function undo() { records.pop(); refresh(); }
+function clearAll() { if(confirm("确定清空所有记录？")){ records=[]; refresh(); } }
+
+// 导出双Sheet Excel
+function exportExcel() {
+  if (records.length===0) { alert("暂无记录可导出"); return; }
+
+  // Sheet1 实时战报
+  const sheet1 = [["时间","描述","放炮","获胜","截胡","被截","泥鳅","庄500","辣子","200+","60内","三财神","4白板"]];
+  records.forEach(r=>{
+    let row = ["","","","","","","","","","","","",""];
+    row[0] = r.time;
+    row[1] = r.desc;
+    if (r.t==="pao") { row[2]=r.f; row[3]=r.tg; }
+    if (r.t==="jie") { row[4]=r.f; row[5]=r.tg; }
+    if (r.t==="one") {
+      const idx = {"泥鳅":6,"庄上500胡":7,"辣子":8,"200胡以上":9,"60胡以内":10,"三财神":11,"4白板":12}[r.a];
+      if (idx) row[idx] = r.f;
+    }
+    sheet1.push(row);
+  });
+
+  // Sheet2 计数统计
+  const st = calcStats();
+  const sheet2 = [["玩家","放炮","获胜","截胡","被截","泥鳅","庄500","辣子","200+","60内","三财神","4白板"]];
+  users.forEach(u=>{
+    sheet2.push([u, st[u].p, st[u].w, st[u].j, st[u].bj,
+      st[u].n, st[u].z, st[u].l, st[u].a2, st[u].a6, st[u].c3, st[u].b4]);
+  });
+
+  // 生成文件
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sheet1), "实时战报");
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sheet2), "计数统计");
+  XLSX.writeFile(wb, "麻将记录.xlsx");
+}
+
+refresh();
 </script>
-
 </body>
 </html>
