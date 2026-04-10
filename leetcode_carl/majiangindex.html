@@ -62,6 +62,8 @@ body {
   padding: 15px;
   margin-bottom: 15px;
   overflow-x: auto;
+  /* 优化：确保内容不被挤压，且有最小宽度 */
+  min-width: 100%;
 }
 .stats-title {
   font-weight: bold;
@@ -69,30 +71,57 @@ body {
   text-align: center;
   margin-bottom: 10px;
   font-size: 20px;
+  position: sticky;
+  left: 0;
+  background: #fff;
+  z-index: 2;
+}
+/* 优化：使用Grid布局确保表头和内容完美对齐 */
+.stats-grid-container {
+  display: grid;
+  grid-template-columns: 70px repeat(22, 55px); /* 固定列宽 */
+  gap: 0;
+  min-width: max-content; /* 强制撑开 */
 }
 .stats-header {
-  display: flex;
+  display: contents; /* 继承grid */
   font-weight: bold;
-  font-size: 16px;
+  font-size: 14px; /* 稍微缩小字体以适应 */
   color: #666;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 8px;
+  background: #f8f8f8;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 .stats-row {
-  display: flex;
-  font-size: 15px;
-  padding: 6px 0;
+  display: contents; /* 继承grid */
+  font-size: 14px;
+}
+/* 通用单元格样式 */
+.stats-cell {
+  padding: 8px 4px;
+  text-align: center;
   border-bottom: 1px solid #f8f8f8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
 }
-.stats-name { 
-  min-width: 70px; 
-  font-weight: bold; 
-  font-size: 16px;
-}
-.stats-item { 
-  min-width: 45px; 
-  text-align: center; 
+/* 第一列 sticky */
+.stats-name-col {
+  position: sticky;
+  left: 0;
+  background: #fff;
+  z-index: 1;
+  font-weight: bold;
   font-size: 15px;
+  justify-content: flex-start;
+  padding-left: 4px;
+  text-align: left;
+}
+.stats-header .stats-name-col {
+  background: #f8f8f8;
+  z-index: 3;
 }
 
 /* 合并统计面板容器 */
@@ -322,6 +351,8 @@ body {
 .btn-hu { background: #ff4757; color: #fff; font-size: 16px; padding: 12px 4px; }
 /* 菜P操作按钮样式 */
 .btn-caip { background: #1abc9c; }
+/* 基操勿6按钮样式 */
+.btn-showoff { background: #e056fd; }
 
 /* 日志 */
 .log-box {
@@ -596,31 +627,39 @@ body {
   <label for="s2">揽云锦绣</label>
 </div>
 
-<!-- 基础数据统计面板 -->
+<!-- 基础数据统计面板 (优化版Grid布局) -->
 <div class="stats-box">
-  <div class="stats-title">实时统计</div>
-  <div class="stats-header">
-    <div class="stats-name">玩家</div>
-    <div class="stats-item">放炮</div>
-    <div class="stats-item">获胜</div>
-    <div class="stats-item">自摸</div>
-    <div class="stats-item">截胡</div>
-    <div class="stats-item">被截</div>
-    <div class="stats-item">泥鳅</div>
-    <div class="stats-item">3财神</div>
-    <div class="stats-item">4白板</div>
-    <div class="stats-item">天&地胡</div>
-    <div class="stats-item">被跟</div>
-    <div class="stats-item">诈胡</div>
-    <div class="stats-item">姥姥</div>
-    <div class="stats-item">牌局</div>
-    <div class="stats-item">30/40胡</div>
-    <div class="stats-item">50-80胡</div>
-    <div class="stats-item">90-200胡</div>
-    <div class="stats-item">210-390胡</div>
-    <div class="stats-item">400胡</div>
+  <div class="stats-title">实时统计 (左右滑动查看完整数据)</div>
+  <div class="stats-grid-container">
+    <!-- 表头 -->
+    <div class="stats-header">
+      <div class="stats-cell stats-name-col">玩家</div>
+      <div class="stats-cell">放炮</div>
+      <div class="stats-cell">获胜</div>
+      <div class="stats-cell">自摸</div>
+      <div class="stats-cell">截胡</div>
+      <div class="stats-cell">被截</div>
+      <div class="stats-cell">泥鳅</div>
+      <div class="stats-cell">3财神</div>
+      <div class="stats-cell">4白板</div>
+      <div class="stats-cell">天&地胡</div>
+      <div class="stats-cell">被跟</div>
+      <div class="stats-cell">诈胡</div>
+      <div class="stats-cell">姥姥</div>
+      <div class="stats-cell">牌局</div>
+      <div class="stats-cell">30/40胡</div>
+      <div class="stats-cell">50-80胡</div>
+      <div class="stats-cell">90-200胡</div>
+      <div class="stats-cell">210-390胡</div>
+      <div class="stats-cell">400胡</div>
+      <div class="stats-cell">平胡</div>
+      <div class="stats-cell">碰碰胡</div>
+      <div class="stats-cell">混清</div>
+      <div class="stats-cell">清一色</div>
+    </div>
+    <!-- 内容 (由JS填充) -->
+    <div id="statsContent"></div>
   </div>
-  <div id="stats"></div>
 </div>
 
 <!-- 合并：放炮/自摸牌统计 + 牌局参与统计面板 -->
@@ -640,6 +679,10 @@ body {
       <div class="person-tile-grid" id="personZimoTileDetail"></div>
     </div>
     <div class="combined-block">
+      <div class="tile-stats-subtitle">🎯 胡牌人收炮牌统计</div>
+      <div class="person-tile-grid" id="personHuPaiDetail"></div>
+    </div>
+    <div class="combined-block">
       <div class="tile-stats-subtitle">📊 牌局参与统计</div>
       <div class="game-grid" id="gameCountDetail"></div>
     </div>
@@ -655,13 +698,14 @@ body {
 <!-- 玩家选择 (动态渲染) -->
 <div class="person-group" id="personGroupContainer"></div>
 
-<!-- 动作按钮 -->
+<!-- 动作按钮 (修改：基操勿6放在菜P旁边) -->
 <div class="action-group">
   <button onclick="openHuModal()" class="btn-hu">胡！</button>
   <button onclick="prepareJieHu()">截胡</button>
   <button onclick="actOne('泥鳅')">泥鳅</button>
   <button onclick="openDogLuckModal()" style="background:#e67e22;">真的狗运受不了！</button>
   <button onclick="openCaiPModal()" class="btn-caip">菜P操作</button>
+  <button onclick="openShowoffModal()" class="btn-showoff">基操勿6</button>
   <button onclick="prepareOB()" style="background:#8e44ad;">边缘OB</button>
   <button onclick="openSettleModal()" class="btn-settle">👑 输赢结算（指定财神）</button>
 </div>
@@ -698,6 +742,22 @@ body {
       <button class="caip-btn" onclick="actDogLuck('3财神')">3财神</button>
       <button class="caip-btn" onclick="actDogLuck('4白板')">4白板</button>
       <button class="caip-btn" onclick="actDogLuck('天&地胡')">天&地胡</button>
+    </div>
+  </div>
+</div>
+
+<!-- 基操勿6弹窗 (修改：点击后记录) -->
+<div class="modal" id="showoffModal">
+  <div class="modal-box">
+    <div class="modal-title">🤙 基操勿6，都坐下！</div>
+    <div class="caip-grid">
+      <button class="caip-btn" onclick="actShowoff('小小平胡啦')" style="background:#686de0;">小小平胡啦</button>
+      <button class="caip-btn" onclick="actShowoff('小小碰碰胡啦')" style="background:#30336b;">小小碰碰胡啦</button>
+      <button class="caip-btn" onclick="actShowoff('小小混清啦')" style="background:#22a6b3;">小小混清啦</button>
+      <button class="caip-btn" onclick="actShowoff('大大清一色！')" style="background:#be2edd;">大大清一色！</button>
+    </div>
+    <div class="settle-btn-group" style="margin-top: 15px;">
+      <button class="btn-cancel-settle" onclick="closeModal(showoffModal)">关闭</button>
     </div>
   </div>
 </div>
@@ -784,6 +844,7 @@ body {
   </div>
 </div>
 
+<!-- 引入XLSX库 -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 // 全局配置
@@ -825,9 +886,10 @@ const caiPModal = document.getElementById("caiPModal");
 const dogLuckModal = document.getElementById("dogLuckModal");
 const titleModal = document.getElementById("titleModal");
 const militaryModal = document.getElementById("militaryModal");
+const showoffModal = document.getElementById("showoffModal");
 const huGrid = document.getElementById("huGrid");
 const log = document.getElementById("log");
-const stats = document.getElementById("stats");
+const statsContent = document.getElementById("statsContent");
 const settleModal = document.getElementById("settleModal");
 const settleInputs = document.getElementById("settleInputs");
 const settleHistory = document.getElementById("settleHistory");
@@ -852,6 +914,37 @@ function initHuGrid() {
     };
     huGrid.appendChild(btn);
   }
+}
+
+// 基操勿6逻辑
+function openShowoffModal() {
+  if (!getSelectedSite() || !getSelectedUser()) return;
+  openModal(showoffModal);
+}
+
+// 基操勿6具体操作
+function actShowoff(actionName) {
+  const u = getSelectedUser();
+  if(!u || !getSelectedSite()) return;
+  
+  // 映射到统计key
+  let statKey = "";
+  if(actionName.includes("平胡")) statKey = "ph";
+  else if(actionName.includes("碰碰胡")) statKey = "pph";
+  else if(actionName.includes("混清")) statKey = "hq";
+  else if(actionName.includes("清一色")) statKey = "qys";
+
+  records.push({
+    t: "showoff",
+    f: u,
+    a: actionName,
+    key: statKey,
+    desc: `${u}｜${actionName}`,
+    time: now()
+  });
+  
+  closeModal(showoffModal);
+  refresh();
 }
 
 // 打开胡牌弹窗
@@ -980,13 +1073,14 @@ function getSelectedUser() {
   return r.value;
 }
 
-// 统计计算
+// 统计计算 (增加基操勿6字段)
 function calcBaseStats() {
   let st = {};
-  // 初始化：增加胡数分段统计
+  // 初始化：增加胡数分段统计 + 基操勿6统计
   users.forEach(u=>st[u]={
     p:0,w:0,z:0,j:0,bj:0,n:0,c3:0,b4:0,tdh:0,bg:0,zh:0,ll:0,game:0,militaryP:0,
-    hu30_40:0, hu50_80:0, hu90_200:0, hu210_390:0, hu400:0
+    hu30_40:0, hu50_80:0, hu90_200:0, hu210_390:0, hu400:0,
+    ph:0, pph:0, hq:0, qys:0 // 基操勿6: 平胡, 碰碰胡, 混清, 清一色
   });
   
   records.forEach(r=>{
@@ -1014,8 +1108,15 @@ function calcBaseStats() {
       if(a==="泥鳅")st[r.f].n++;if(a==="3财神")st[r.f].c3++;if(a==="4白板")st[r.f].b4++;if(a==="天&地胡")st[r.f].tdh++;
       if(a==="第一张被跟")st[r.f].bg++;if(a==="诈胡")st[r.f].zh++;if(a==="姥姥")st[r.f].ll++;
     }
+    // 基操勿6统计
+    if (r.t === "showoff" && st[r.f]) {
+      if(r.key === "ph") st[r.f].ph++;
+      if(r.key === "pph") st[r.f].pph++;
+      if(r.key === "hq") st[r.f].hq++;
+      if(r.key === "qys") st[r.f].qys++;
+    }
 
-    // 胡数分段统计 (修改版)
+    // 胡数分段统计
     if((r.t === "pao" || r.t === "zimo") && r.huScore) {
       const hu = r.huScore;
       const user = r.t === "pao" ? r.to : r.from;
@@ -1031,13 +1132,26 @@ function calcBaseStats() {
   return st;
 }
 
-function calcTileStats(type) {
+// 牌统计函数重构
+// type: "pao" (放炮统计) 或 "hu" (胡牌收炮统计)
+// keyField: "from" (放炮者) 或 "to" (胡牌者)
+function calcTileStats(type, keyField) {
   let globalCount = {}, personCount = {};
   users.forEach(u => personCount[u] = {});
-  records.filter(r => r.t === type).forEach(r => {
+  
+  // 筛选记录：如果是"hu"类型，只看放炮记录，且统计胡牌人(to)
+  const targetRecords = records.filter(r => {
+    if(type === "hu") return r.t === "pao";
+    return r.t === type;
+  });
+
+  targetRecords.forEach(r => {
+    const keyUser = r[keyField];
     const k = `${r.tileName}${r.tile}`;
     globalCount[k]=(globalCount[k]||0)+1;
-    personCount[r.from][k]=(personCount[r.from][k]||0)+1;
+    if(personCount[keyUser]) {
+        personCount[keyUser][k]=(personCount[keyUser][k]||0)+1;
+    }
   });
   return {
     sortedGlobal: Object.entries(globalCount).sort((a,b)=>b[1]-a[1]).map(i=>({tile:i[0],count:i[1]})),
@@ -1047,31 +1161,46 @@ function calcTileStats(type) {
 
 // 界面刷新
 function refresh() {
-  const base=calcBaseStats(), pao=calcTileStats("pao"), zimo=calcTileStats("zimo");
-  // 统计面板
-  stats.innerHTML = users.map(u=>{
-    const d=base[u]||{p:0,w:0,z:0,j:0,bj:0,n:0,c3:0,b4:0,tdh:0,bg:0,zh:0,ll:0,game:0,militaryP:0,hu30_40:0,hu50_80:0,hu90_200:0,hu210_390:0,hu400:0};
+  const base=calcBaseStats(), 
+        pao=calcTileStats("pao", "from"), 
+        zimo=calcTileStats("zimo", "from"),
+        huPai=calcTileStats("hu", "to"); // 新增：胡牌人收炮统计
+  
+  // 统计面板 (使用Grid布局渲染)
+  statsContent.innerHTML = users.map(u=>{
+    const d=base[u]||{p:0,w:0,z:0,j:0,bj:0,n:0,c3:0,b4:0,tdh:0,bg:0,zh:0,ll:0,game:0,militaryP:0,hu30_40:0,hu50_80:0,hu90_200:0,hu210_390:0,hu400:0,ph:0,pph:0,hq:0,qys:0};
     // 处理小数显示
     const displayP = Number.isInteger(d.p)? d.p : d.p.toFixed(1);
-    return `<div class="stats-row">
-      <div class="stats-name">${u}</div>
-      <div class="stats-item">${displayP}</div><div class="stats-item">${d.w}</div>
-      <div class="stats-item">${d.z}</div>
-      <div class="stats-item">${d.j}</div><div class="stats-item">${d.bj}</div>
-      <div class="stats-item">${d.n}</div><div class="stats-item">${d.c3}</div>
-      <div class="stats-item">${d.b4}</div><div class="stats-item">${d.tdh}</div>
-      <div class="stats-item">${d.bg}</div>
-      <div class="stats-item">${d.zh}</div><div class="stats-item">${d.ll}</div>
-      <div class="stats-item" style="color:#8e44ad">${d.game}</div>
-      <div class="stats-item">${d.hu30_40}</div>
-      <div class="stats-item">${d.hu50_80}</div>
-      <div class="stats-item">${d.hu90_200}</div>
-      <div class="stats-item">${d.hu210_390}</div>
-      <div class="stats-item">${d.hu400}</div>
-    </div>`;
+    
+    // 构建一行的HTML
+    return `
+      <div class="stats-cell stats-name-col">${u}</div>
+      <div class="stats-cell">${displayP}</div>
+      <div class="stats-cell">${d.w}</div>
+      <div class="stats-cell">${d.z}</div>
+      <div class="stats-cell">${d.j}</div>
+      <div class="stats-cell">${d.bj}</div>
+      <div class="stats-cell">${d.n}</div>
+      <div class="stats-cell">${d.c3}</div>
+      <div class="stats-cell">${d.b4}</div>
+      <div class="stats-cell">${d.tdh}</div>
+      <div class="stats-cell">${d.bg}</div>
+      <div class="stats-cell">${d.zh}</div>
+      <div class="stats-cell">${d.ll}</div>
+      <div class="stats-cell" style="color:#8e44ad">${d.game}</div>
+      <div class="stats-cell">${d.hu30_40}</div>
+      <div class="stats-cell">${d.hu50_80}</div>
+      <div class="stats-cell">${d.hu90_200}</div>
+      <div class="stats-cell">${d.hu210_390}</div>
+      <div class="stats-cell">${d.hu400}</div>
+      <div class="stats-cell" style="color:#686de0">${d.ph}</div>
+      <div class="stats-cell" style="color:#30336b">${d.pph}</div>
+      <div class="stats-cell" style="color:#22a6b3">${d.hq}</div>
+      <div class="stats-cell" style="color:#be2edd">${d.qys}</div>
+    `;
   }).join("");
 
-  // 牌统计渲染
+  // 牌统计渲染通用函数
   const r=(s,g,p)=>{
     document.getElementById(g).innerHTML=s.sortedGlobal.length?
       s.sortedGlobal.map(i=>`<div class="tile-rank-item"><span class="tile-rank-char">${i.tile.slice(-2)}</span><span>${i.tile.slice(0,-2)}×${i.count}</span></div>`).join("")
@@ -1082,8 +1211,10 @@ function refresh() {
       <div class="person-tile-list">${t.length?t.map(i=>`<span>${i[0].slice(-2)}×${i[1]}</span>`).join(""):'<span style="color:#999">暂无</span>'}</div></div>`;
     }).join("");
   };
+  
   r(pao,"globalPaoTileRank","personPaoTileDetail");
   r(zimo,"globalZimoTileRank","personZimoTileDetail");
+  r(huPai,"globalPaoTileRank","personHuPaiDetail"); // 复用渲染逻辑
 
   // 牌局统计
   document.getElementById("gameCountDetail").innerHTML=users.map(u=>
@@ -1323,6 +1454,14 @@ function calcTitles() {
   const hu210_390 = findMax(d => d.hu210_390);
   if (hu210_390.users.length > 0) titleData.push(["哥们胡很大但也没那么大", hu210_390.users.join("、"), hu210_390.count, "210-390胡计数最高的称为“哥们胡很大但也没那么大”"]);
 
+  // 15. 劳模奖 (局数最多)
+  const gameMax = findMax(d => d.game);
+  if (gameMax.users.length > 0) titleData.push(["劳模奖", gameMax.users.join("、"), gameMax.count, "参加局数最多的称为“劳模奖（给我坐死在板凳上~）”"]);
+
+  // 16. 边缘OB奖 (局数最少)
+  const gameMin = findMin(d => d.game);
+  if (gameMin.users.length > 0) titleData.push(["边缘OB奖", gameMin.users.join("、"), gameMin.count, "参加局数最少的称为“边缘OB奖（你就给我站着~）”"]);
+
   return titleData;
 }
 
@@ -1348,7 +1487,9 @@ function openTitleModal() {
     "210-390胡计数最高的称为“哥们胡很大但也没那么大”",
     "400胡计数最多的称为“饭没吃饱就请你们吃辣子！”",
     "作为军师时累计分锅（放炮）最多的称为“灵犀一指狗头军师”",
-    "作为军师时累计分锅（放炮）最少的称为“神机妙算诸葛孔明”"
+    "作为军师时累计分锅（放炮）最少的称为“神机妙算诸葛孔明”",
+    "参加局数最多的称为“劳模奖（给我坐死在板凳上~）”",
+    "参加局数最少的称为“边缘OB奖（你就给我站着~）”"
   ].map(r => `<div class="title-rule-item">• ${r}</div>`).join("");
   document.getElementById("titleRules").innerHTML = rulesHtml;
 
@@ -1430,18 +1571,20 @@ function exportExcel() {
   if (records.length===0 && settleRecords.length===0) { alert("暂无记录"); return; }
 
   const baseStats = calcBaseStats();
-  const paoStats = calcTileStats("pao");
-  const zimoStats = calcTileStats("zimo");
+  const paoStats = calcTileStats("pao", "from");
+  const zimoStats = calcTileStats("zimo", "from");
+  const huPaiStats = calcTileStats("hu", "to");
 
-  // Sheet1 实时战报 (增加胡数列)
-  const sheet1 = [["时间","描述","胡数","放炮","获胜","自摸","截胡","被截","泥鳅","3财神","4白板","天&地胡","被跟","诈胡","姥姥","放炮牌","自摸牌"]];
+  // Sheet1 实时战报
+  const sheet1 = [["时间","描述","胡数","放炮","获胜","自摸","截胡","被截","泥鳅","3财神","4白板","天&地胡","被跟","诈胡","姥姥","放炮牌","自摸牌","基操类型"]];
   records.forEach(r=>{
-    let row = ["","","","","","","","","","","","","","","","",""];
+    let row = ["","","","","","","","","","","","","","","","","",""];
     row[0] = r.time; row[1] = r.desc;
-    if(r.huScore) row[2] = r.huScore; // 新增胡数
+    if(r.huScore) row[2] = r.huScore;
     if (r.t==="pao") { row[3]=r.from; row[4]=r.to; row[15] = `${r.tileName}${r.tile}`; }
-    if (r.t==="zimo") { row[4]=r.from; row[5]=1; row[16] = `${r.tileName}${r.tile}`; } // 自摸标记
+    if (r.t==="zimo") { row[4]=r.from; row[5]=1; row[16] = `${r.tileName}${r.tile}`; }
     if (r.t==="jie") { row[6]=r.from; row[7]=r.to; }
+    if (r.t==="showoff") { row[17] = r.a; }
     if (r.t==="one") {
       const idx = {"泥鳅":8,"3财神":9,"4白板":10,"天&地胡":11,"第一张被跟":12,"诈胡":13,"姥姥":14}[r.a];
       if (idx) row[idx] = r.f;
@@ -1450,10 +1593,10 @@ function exportExcel() {
   });
 
   // Sheet2 基础计数
-  const sheet2 = [["玩家","放炮","获胜","自摸","截胡","被截","泥鳅","3财神","4白板","天&地胡","被跟","诈胡","姥姥","牌局数","军师分锅数","30/40胡","50-80胡","90-200胡","210-390胡","400胡"]];
+  const sheet2 = [["玩家","放炮","获胜","自摸","截胡","被截","泥鳅","3财神","4白板","天&地胡","被跟","诈胡","姥姥","牌局数","军师分锅数","30/40胡","50-80胡","90-200胡","210-390胡","400胡","平胡","碰碰胡","混清","清一色"]];
   users.forEach(u=>{
-    const d = baseStats[u] || {p:0,w:0,z:0,j:0,bj:0,n:0,c3:0,b4:0,tdh:0,bg:0,zh:0,ll:0,game:0,militaryP:0,hu30_40:0,hu50_80:0,hu90_200:0,hu210_390:0,hu400:0};
-    sheet2.push([u, d.p, d.w, d.z, d.j, d.bj, d.n, d.c3, d.b4, d.tdh, d.bg, d.zh, d.ll, d.game, d.militaryP, d.hu30_40, d.hu50_80, d.hu90_200, d.hu210_390, d.hu400]);
+    const d = baseStats[u] || {p:0,w:0,z:0,j:0,bj:0,n:0,c3:0,b4:0,tdh:0,bg:0,zh:0,ll:0,game:0,militaryP:0,hu30_40:0,hu50_80:0,hu90_200:0,hu210_390:0,hu400:0,ph:0,pph:0,hq:0,qys:0};
+    sheet2.push([u, d.p, d.w, d.z, d.j, d.bj, d.n, d.c3, d.b4, d.tdh, d.bg, d.zh, d.ll, d.game, d.militaryP, d.hu30_40, d.hu50_80, d.hu90_200, d.hu210_390, d.hu400, d.ph, d.pph, d.hq, d.qys]);
   });
 
   // Sheet3 胡牌统计
@@ -1469,6 +1612,12 @@ function exportExcel() {
   users.forEach(u => {
     Object.entries(zimoStats.personCount[u]||{}).sort((a,b)=>b[1]-a[1]).forEach(i=>sheet3.push([u,i[0],i[1]]));
   });
+  // 新增：胡牌人收炮牌统计
+  sheet3.push([]); sheet3.push(["【胡牌人收炮牌】统计","",""]); sheet3.push(["玩家","牌名","次数"]);
+  users.forEach(u => {
+    Object.entries(huPaiStats.personCount[u]||{}).sort((a,b)=>b[1]-a[1]).forEach(i=>sheet3.push([u,i[0],i[1]]));
+  });
+  
   sheet3.push([]); sheet3.push(["牌局参与",""]); sheet3.push(["玩家","局数"]);
   users.forEach(u => sheet3.push([u, (baseStats[u]||{}).game||0]));
 
@@ -1509,7 +1658,9 @@ function exportExcel() {
       "210-390胡计数最高的称为“哥们胡很大但也没那么大”",
       "400胡计数最多的称为“饭没吃饱就请你们吃辣子！”",
       "作为军师时放炮最多的称为“灵犀一指狗头军师”",
-      "作为军师时放炮最少的称为“神机妙算诸葛孔明”"
+      "作为军师时放炮最少的称为“神机妙算诸葛孔明”",
+      "参加局数最多的称为“劳模奖（给我坐死在板凳上~）”",
+      "参加局数最少的称为“边缘OB奖（你就给我站着~）”"
     ];
     rules.forEach(r => sheet5.push([r]));
     sheet5.push([]); sheet5.push(["=================="]);
