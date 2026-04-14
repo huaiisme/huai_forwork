@@ -52,4 +52,20 @@ num_pillars = min(len(unique_coords), MAX_PILLARS)
 unique_coords = unique_coords[:num_pillars]
 ```
 获得pillar的数目
+然后根据pillar的数目来对柱体的特征做初始化
+# 4.初始化pillar的特征
+```
+pillars = np.zeros((num_pillars, MAX_POINTS_PER_PILLAR, 9), dtype=np.float32)
+```
+pillar的数目，以及每个pillar的最大点数，这里是32，以及9维信息
+
+# 5. 填充每个柱体的点，计算增强特征
+
+
+
+
+
+
+
+
 
