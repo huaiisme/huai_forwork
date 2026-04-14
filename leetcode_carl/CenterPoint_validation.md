@@ -27,5 +27,13 @@ z_mask = (points[:,2] >= VOXEL_Z_RANGE[0]) & (points[:,2] < VOXEL_Z_RANGE[1])
 valid_points_ratio = np.sum(x_mask & y_mask & z_mask) / len(points)
 ```
 
-### s2. 
+### s3. 体素化模块验证
+```
+test_pillars, test_coords = validate_voxelization(test_points)
+```
+
+对于每个points而言，首先对超出范围的点剔除掉
+获得其mask，如果len(points)为0,则 返回一个 np.zeros((1, MAX_POINTS_PER_PILLAR, 9), dtype=np.float32), np.zeros((1, 3), dtype=np.int32)
+
+
 
