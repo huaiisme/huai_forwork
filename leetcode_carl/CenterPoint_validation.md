@@ -90,6 +90,13 @@ assert (np.abs(x_offset) <= 0.051).all()
 assert (np.abs(y_offset) <= 0.051).all()
 ```
 
+### s4. 标签生成逐字段验证
+将gt框给到用于生成heatmap与reg z dim rot
+```
+array([[35.2,  0. ,  0. ,  3.9,  1.6,  1.5,  0. ]], dtype=float32)
+heatmap, reg, z, dim, rot = generate_targets(gt_boxes)
+
+```
 
 
 
