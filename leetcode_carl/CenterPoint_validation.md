@@ -169,6 +169,112 @@ def gaussian_radius(det_size, min_overlap=0.7):
 ```
 gaussian = multivariate_normal(mean=[0, 0], cov=[[diameter/6, 0], [0, diameter/6]])
 ```
+然后对xy 再radius上做meshgrid的操作
+```
+def draw_gaussian(heatmap, center, radius):
+    """在热力图上绘制2D高斯核"""
+    diameter = 2 * radius + 1
+    gaussian = multivariate_normal(mean=[0, 0], cov=[[diameter/6, 0], [0, diameter/6]])
+    x = np.arange(-radius, radius + 1, 1)
+    y = np.arange(-radius, radius + 1, 1)
+    xx, yy = np.meshgrid(x, y)
+    gaussian = gaussian.pdf(np.stack([xx, yy], axis=-1))
+    gaussian = gaussian / gaussian.max()  # 归一化到0-1
+    # 裁剪到热力图范围内    
+    x, y = int(center[0]), int(center[1])
+    H, W = heatmap.shape
+    left = min(x, radius)
+    right = min(W - x, radius + 1)
+    top = min(y, radius)
+    bottom = min(H - y, radius + 1)
+
+    heatmap[y-top:y+bottom, x-left:x+right] = np.maximum(
+        heatmap[y-top:y+bottom, x-left:x+right],
+        gaussian[radius-top:radius+bottom, radius-left:radius+right]
+    )
+    return heatmap
+```
+以此获得热力图
+将每个数值给到对应的
+reg z dim rot当中
+
+
+然后就到了可视化的界面
+
+### s5对应生成可视化界面
+首先生成一个基于BEV_HEIGHT & BEV_WIDTH, 3维的bev_img
+```
+bev_img = np.zeros((BEV_HEIGHT, BEV_WIDTH, 3), dtype=np.uint8)
+```
+并获取对应的points_u & points_v，通过使用points 位置 减去下限除以 体素的bin值， 
+```
+points_u = ((points[:,0] - VOXEL_X_RANGE[0]) / 0.1).astype(np.int32)
+points_v = ((points[:,1] - VOXEL_Y_RANGE[0]) / 0.1).astype(np.int32)
+```
+
+绘制GT框,通过ry朝向角先拿到cos_sin，并根据l和w获取corner角点，再经由旋转，然后再用corner的旋转矩阵加上位移，获得corner_u和corner_v 然后加上cv
+```
+x,y,z,l,w,h,ry = box
+cos_ry = np.cos(ry)
+sin_ry = np.sin(ry)
+corners = np.array([[l/2,w/2],[l/2,-w/2],[-l/2,-w/2],[-l/2,w/2]])
+rot_mat = np.array([[cos_ry,-sin_ry],[sin_ry,cos_ry]])
+corners = corners @ rot_mat.T + np.array([x,y])
+corners_u = ((corners[:,0]-VOXEL_X_RANGE[0])/0.1).astype(np.int32)
+corners_v = ((corners[:,1]-VOXEL_Y_RANGE[0])/0.1).astype(np.int32)
+cv2.polylines(bev_img, [np.stack([corners_u,corners_v],1)], True, (0,255,0), 2)
+```
+
+热力图叠加
+```
+heatmap_norm = (heatmap[0] * 255).astype(np.uint8)
+heatmap_color = cv2.applyColorMap(heatmap_norm, cv2.COLORMAP_JET)
+overlay = cv2.addWeighted(bev_img, 0.6, heatmap_color, 0.4, 0)
+```
+
+最后生成出图片，最后再通过将生成的heatmap reg z等相关信息给恢复到boxes当中
+
+```
+def validate_closed_loop(gt_boxes, heatmap, reg, z, dim, rot):
+    pos_mask = heatmap == 1.0
+    pos_y, pos_x = np.where(pos_mask[0])
+    restored_boxes = []
+    for i in range(len(pos_x)):
+        # 还原中心
+        pixel_x_world = pos_x[i] * 0.1 + VOXEL_X_RANGE[0] + 0.05
+        pixel_y_world = pos_y[i] * 0.1 + VOXEL_Y_RANGE[0] + 0.05
+        dx = reg[0, pos_y[i], pos_x[i]]
+        dy = reg[1, pos_y[i], pos_x[i]]
+        x = pixel_x_world + dx
+        y = pixel_y_world + dy
+        z_val = z[0, pos_y[i], pos_x[i]]
+        # 还原尺寸
+        l = np.exp(dim[0, pos_y[i], pos_x[i]])
+        w = np.exp(dim[1, pos_y[i], pos_x[i]])
+        h = np.exp(dim[2, pos_y[i], pos_x[i]])
+        # 还原旋转角
+        sin_ry = rot[0, pos_y[i], pos_x[i]]
+        cos_ry = rot[1, pos_y[i], pos_x[i]]
+        ry = np.arctan2(sin_ry, cos_ry)
+        restored_boxes.append([x,y,z_val,l,w,h,ry])
+    
+    restored_boxes = np.array(restored_boxes)
+    print(f"   原始GT框: {gt_boxes[0]}")
+    print(f"   还原后框: {restored_boxes[0]}")
+    error = np.abs(gt_boxes - restored_boxes).max()
+    print(f"   最大还原误差: {error:.10f}")
+    assert error < 1e-6, "还原误差过大！"
+    print("✅【验证5/6】通过！标签编码完全无损！")
+    return restored_boxes
+```
+
+
+
+
+
+
+
+
 
 
 
