@@ -60,6 +60,36 @@ pillars = np.zeros((num_pillars, MAX_POINTS_PER_PILLAR, 9), dtype=np.float32)
 pillar的数目，以及每个pillar的最大点数，这里是32，以及9维信息
 
 # 5. 填充每个柱体的点，计算增强特征
+对于单个point
+设置两个条件，当voxel idx大于num pillar的时候直接continue
+当point_count[voxel_id] 大于pillar中的最大值的时候continue
+读取point[i]
+赋值voxel_x voxel_y voxel_z
+```
+# 柱体网格中心
+  voxel_x = (unique_coords[voxel_idx, 2] * VOXEL_SIZE[0]) + VOXEL_X_RANGE[0] + VOXEL_SIZE[0]/2
+  voxel_y = (unique_coords[voxel_idx, 1] * VOXEL_SIZE[1]) + VOXEL_Y_RANGE[0] + VOXEL_SIZE[1]/2
+  voxel_z = (unique_coords[voxel_idx, 0] * VOXEL_SIZE[2]) + VOXEL_Z_RANGE[0] + VOXEL_SIZE[2]/2
+```
+
+# 填充9维特征
+``` x_p y_p z_p i_p x_p - voxel_x, y_p - voxel_y, z_p - voxel_z, x_p - meanx, y_p - meany
+pillar[voxel_idx, point_count[voxel_idx]] = [
+            x_p, y_p, z_p, i_p,
+            x_p - voxel_x, y_p - voxel_y, z_p - voxel_z,
+            x_p - np.mean(x), y_p - np.mean(y)
+        ]
+```
+这样得到了有效数目,32,9个矩阵维度
+
+``` 判断偏移量
+# 偏移量验证
+x_offset = pillars[...,4]
+y_offset = pillars[...,5]
+assert (np.abs(x_offset) <= 0.051).all()
+assert (np.abs(y_offset) <= 0.051).all()
+```
+
 
 
 
