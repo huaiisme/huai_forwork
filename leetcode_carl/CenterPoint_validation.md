@@ -34,6 +34,22 @@ test_pillars, test_coords = validate_voxelization(test_points)
 
 对于每个points而言，首先对超出范围的点剔除掉
 获得其mask，如果len(points)为0,则 返回一个 np.zeros((1, MAX_POINTS_PER_PILLAR, 9), dtype=np.float32), np.zeros((1, 3), dtype=np.int32)
-
-
+按照以下方式，通过x对体素范围做相减再除以size的方式 确定x y z 的idx
+```
+# 2. 计算每个点所属的体素网格坐标
+x = points[:, 0]
+y = points[:, 1]
+z = points[:, 2]
+x_idx = ((x - VOXEL_X_RANGE[0]) / VOXEL_SIZE[0]).astype(np.int32)
+y_idx = ((y - VOXEL_Y_RANGE[0]) / VOXEL_SIZE[1]).astype(np.int32)
+z_idx = ((z - VOXEL_Z_RANGE[0]) / VOXEL_SIZE[2]).astype(np.int32)
+voxel_coords = np.stack([z_idx, y_idx, x_idx], axis=1)  # (N,3)
+```
+# 3. 去重，得到非空柱体
+```
+unique_coords, inverse_indices = np.unique(voxel_coords, axis=0, return_inverse=True)
+num_pillars = min(len(unique_coords), MAX_PILLARS)
+unique_coords = unique_coords[:num_pillars]
+```
+获得pillar的数目
 
