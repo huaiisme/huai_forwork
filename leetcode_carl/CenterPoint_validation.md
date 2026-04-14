@@ -92,11 +92,92 @@ assert (np.abs(y_offset) <= 0.051).all()
 
 ### s4. 标签生成逐字段验证
 将gt框给到用于生成heatmap与reg z dim rot
+"""
+生成CenterPoint训练所需的标签
+输入：boxes_3d → (M,7) [x,y,z,l,w,h,ry]
+输出：
+    heatmap: (NUM_CLASSES, BEV_HEIGHT, BEV_WIDTH)
+    reg: (2, BEV_HEIGHT, BEV_WIDTH)
+    z: (1, BEV_HEIGHT, BEV_WIDTH)
+    dim: (3, BEV_HEIGHT, BEV_WIDTH)
+    rot: (2, BEV_HEIGHT, BEV_WIDTH)
+"""
 ```
 array([[35.2,  0. ,  0. ,  3.9,  1.6,  1.5,  0. ]], dtype=float32)
 heatmap, reg, z, dim, rot = generate_targets(gt_boxes)
-
+其中BEV HEIGHT与 BEV WIDTH是根据体素voxel x range 和 voxel y range所决定的
 ```
+将3d框转为BEV参数
+读取
+```
+"""3D框 → BEV平面的中心、尺寸、角度"""
+bev_centers = boxes_3d[:, [0, 1]]  # x,y
+bev_dims = boxes_3d[:, [3, 4]]     # l,w
+ry = boxes_3d[:, 6]
+```
+再将 投影到BEV
+先获得BEV框，再将BEV框的xy 即bev_center按照对应体素化的程序给到
+然后通过对逐个 boxes_3d生成标签
+首先是
+```
+u, v = pixel_coords[i]
+# 过滤超出BEV范围的框
+if u < 0 or u >= BEV_WIDTH or v < 0 or v >= BEV_HEIGHT:
+    continue
+```
+根据bev l w生成高斯热力核
+```
+  # 1. 生成热力图高斯核
+  l, w = bev_dims[i]
+  # 米 → 像素
+  l_pixel = l / 0.1
+  w_pixel = w / 0.1
+  radius = max(int(gaussian_radius((l_pixel, w_pixel))), 1)
+  heatmap[0] = draw_gaussian(heatmap[0], (u, v), radius)
+```
+这里这个0.1应该是需要跟具体的业务去做一个匹配的
+
+有了l和w，使用高斯核半径
+```
+def gaussian_radius(det_size, min_overlap=0.7):
+    """计算高斯核半径（CenterNet/CenterPoint官方公式）"""
+    l, w = det_size
+    a1 = 1
+    b1 = l + w
+    c1 = w * l * (1 - min_overlap) / (1 + min_overlap)
+    sq1 = np.sqrt(b1 ** 2 - 4 * a1 * c1)
+    r1 = (b1 + sq1) / 2
+
+    a2 = 4
+    b2 = 2 * (l + w)
+    c2 = (1 - min_overlap) * w * l
+    sq2 = np.sqrt(b2 ** 2 - 4 * a2 * c2)
+    r2 = (b2 + sq2) / 2
+
+    a3 = 4 * min_overlap
+    b3 = -2 * min_overlap * (l + w)
+    c3 = (min_overlap - 1) * w * l
+    sq3 = np.sqrt(b3 ** 2 - 4 * a3 * c3)
+    r3 = (b3 + sq3) / 2
+    return max(r1, r2, r3)
+```
+通过给定的l和 W， 以及给出一个Min_overlap
+分别划出3个r半径出来
+
+然后有了 u v （BEVcenter上的x，y），以及刚计算得到的radius
+然后使用gaussian = 得到
+```
+gaussian = multivariate_normal(mean=[0, 0], cov=[[diameter/6, 0], [0, diameter/6]])
+```
+
+
+
+
+
+
+
+
+
 
 
 
