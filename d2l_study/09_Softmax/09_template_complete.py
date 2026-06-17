@@ -94,7 +94,7 @@ def train_epoch_ch3(net, train_iter, loss, updater):
                 float(l.sum()), accuracy(y_hat, y),
                 y.size().numel()
             )
-        return metric[0] / metric[2], metric[1] / metric[2]
+    return metric[0] / metric[2], metric[1] / metric[2]
 
 
 
@@ -114,6 +114,22 @@ def train_ch3(net, train_iter, test_iter, loss, num_epochs, updater):
         test_acc = evaluate_accuracy(net, test_iter)
 
     train_loss, train_acc = train_metrics
+
+def get_fashion_mnist_labels(labels):
+    """返回Fashion-MNIST数据集的文本标签
+
+    Defined in :numref:`sec_fashion_mnist`"""
+    text_labels = ['t-shirt', 'trouser', 'pullover', 'dress', 'coat',
+                   'sandal', 'shirt', 'sneaker', 'bag', 'ankle boot']
+    return [text_labels[int(i)] for i in labels]
+
+def predict_ch3(net, test_iter, n=6):
+    for X, y in test_iter:
+        break
+    trues = get_fashion_mnist_labels(y)
+    preds = get_fashion_mnist_labels(net(X).argmax(axis=1))
+
+
 
 
 if __name__ == "__main__":
@@ -147,5 +163,5 @@ if __name__ == "__main__":
     # print(evaluate_accuracy(net, test_iter))
     num_epochs = 1
     train_ch3(net, train_iter, test_iter, cross_entropy, num_epochs, updater)
-
+    predict_ch3(net, test_iter)
 
