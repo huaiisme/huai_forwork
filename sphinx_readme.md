@@ -37,4 +37,7 @@ UniBEV: Multi-modal 3D Object Detection with Uniform BEV Encoders for Robustness
 VoxFormer: Sparse Voxel Transformer for Camera-based 3D Semantic Scene Completion
 
 
+https://hanlab.mit.edu/projects/bevfusion
+
+
 
